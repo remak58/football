@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Highlight Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        #error-container {
+            background-color: #ff000033;
+            color: #ff6b6b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        #debug-info {
+            background-color: #2d3748;
+            color: #cbd5e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Error Display Container -->
+        <div id="error-container" style="display: none;">
+            <h2 class="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
+            <p id="error-message">Unable to load highlight details</p>
+            <div id="debug-info"></div>
+        </div>
+
+        <div id="video-detail-container" class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <div id="video-header" class="p-6 bg-gradient-to-r from-gray-700 to-gray-900">
+                <h1 id="video-title" class="text-3xl font-bold text-white mb-4">Loading Highlight...</h1>
+                <div id="video-meta" class="flex items-center text-sm text-gray-300 mb-4">
+                    <span id="video-date" class="mr-4">-</span>
+                    <span id="video-competition" class="mr-4">-</span>
+                </div>
+            </div>
+
+            <div id="video-content" class="p-6">
+                <div id="video-embed" class="mb-6 rounded-lg overflow-hidden shadow-lg">
+                    <p class="text-center text-gray-400">No video available</p>
+                </div>
+
+                <!-- Embedded Highlights Section -->
+                <div id="embedded-highlights" class="mt-8">
+                    <h2 class="text-2xl font-bold mb-4">All Highlights</h2>
+                    <div id="highlights-list" class="space-y-4">No additional highlights</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Comprehensive debug function
+            function showError(message, additionalInfo = {}) {
+                console.error('Highlight Detail Error:', message, additionalInfo);
+                
+                const errorContainer = document.getElementById('error-container');
+                const errorMessage = document.getElementById('error-message');
+                const debugInfo = document.getElementById('debug-info');
+                
+                errorMessage.textContent = message;
+                
+                // Prepare debug information
+                const debugDetails = {
+                    message: message,
+                    timestamp: new Date().toISOString(),
+                    ...additionalInfo
+                };
+                
+                debugInfo.textContent = JSON.stringify(debugDetails, null, 2);
+                
+                errorContainer.style.display = 'block';
+                document.getElementById('video-detail-container').style.display = 'none';
+            }
+
+            try {
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const encodedData = urlParams.get('data');
+
+                // Detailed logging of raw data
+                console.log('Raw Encoded Data:', encodedData);
+
+                // Check if data parameter exists
+                if (!encodedData) {
+                    throw new Error('No highlight data found in URL');
+                }
+
+                // Advanced decoding with error handling
+                let decodedData;
+                try {
+                    // First, try standard decoding
+                    decodedData = decodeURIComponent(encodedData);
+                } catch (firstDecodeError) {
+                    try {
+                        // If standard decoding fails, try replacing '+' with '%20'
+                        decodedData = decodeURIComponent(encodedData.replace(/\+/g, '%20'));
+                    } catch (secondDecodeError) {
+                        try {
+                            // Last resort: manual decoding
+                            decodedData = JSON.parse(
+                                encodedData
+                                    .replace(/\+/g, ' ')
+                                    .replace(/%22/g, '"')
+                                    .replace(/%3A/g, ':')
+                                    .replace(/%2C/g, ',')
+                                    .replace(/%7B/g, '{')
+                                    .replace(/%7D/g, '}')
+                                    .replace(/%5B/g, '[')
+                                    .replace(/%5D/g, ']')
+                            );
+                            decodedData = JSON.stringify(decodedData);
+                        } catch (manualDecodeError) {
+                            throw new Error('Failed to decode highlight data');
+                        }
+                    }
+                }
+
+                console.log('Decoded Data:', decodedData);
+
+                // Safely parse JSON
+                let highlightData;
+                try {
+                    highlightData = JSON.parse(decodedData);
+                } catch (parseError) {
+                    throw new Error('Failed to parse highlight data: Invalid JSON');
+                }
+
+                // Validate highlight data structure
+                if (!highlightData || typeof highlightData !== 'object') {
+                    throw new Error('Invalid highlight data structure');
+                }
+
+                // Populate page with robust fallback values
+                document.getElementById('video-title').textContent = 
+                    highlightData.title || 'Untitled Highlight';
+                
+                document.getElementById('video-date').innerHTML = `
+                    <i class="fas fa-calendar-alt mr-2"></i>${
+                        highlightData.date 
+                        ? (() => {
+                            try {
+                                // Try parsing the date in multiple formats
+                                const dateObj = new Date(highlightData.date);
+                                
+                                // Check if date is valid
+                                if (isNaN(dateObj.getTime())) {
+                                    return 'Invalid Date';
+                                }
+                                
+                                // Format options
+                                const options = { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    timeZoneName: 'short'
+                                };
+                                
+                                // Return localized date string
+                                return dateObj.toLocaleString('en-US', options);
+                            } catch (error) {
+                                console.error('Date parsing error:', error);
+                                return 'Invalid Date';
+                            }
+                        })()
+                        : 'Unknown Date'
+                    }
+                `;
+                
+                document.getElementById('video-competition').innerHTML = `
+                    <i class="fas fa-trophy mr-2"></i>${
+                        highlightData.competition || 'Football Highlight'
+                    }
+                `;
+
+                // Video embed handling
+                const videoEmbed = document.getElementById('video-embed');
+                if (highlightData.videos && highlightData.videos.length > 0) {
+                    videoEmbed.innerHTML = highlightData.videos[0].embed;
+                } else {
+                    videoEmbed.innerHTML = '<p class="text-center text-gray-400">No video available</p>';
+                }
+
+                // Highlights list
+                const highlightsList = document.getElementById('highlights-list');
+                highlightsList.innerHTML = ''; // Clear default text
+                
+                if (highlightData.videos && highlightData.videos.length > 0) {
+                    highlightData.videos.forEach((video, index) => {
+                        const highlightItem = document.createElement('div');
+                        highlightItem.className = 'bg-gray-600 rounded-lg p-4';
+                        highlightItem.innerHTML = `
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-lg font-semibold">Highlight ${index + 1}</h3>
+                                <button class="play-highlight bg-green-500 text-white px-3 py-1 rounded-full hover:bg-green-600 transition" data-index="${index}">
+                                    <i class="fas fa-play mr-2"></i>Play
+                                </button>
+                            </div>
+                        `;
+                        highlightsList.appendChild(highlightItem);
+                    });
+
+                    // Play button functionality
+                    document.querySelectorAll('.play-highlight').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const index = e.target.getAttribute('data-index');
+                            videoEmbed.innerHTML = highlightData.videos[index].embed;
+                            videoEmbed.scrollIntoView({ behavior: 'smooth' });
+                        });
+                    });
+                } else {
+                    highlightsList.textContent = 'No additional highlights available';
+                }
+
+            } catch (error) {
+                // Comprehensive error handling
+                showError(error.message, {
+                    errorStack: error.stack,
+                    urlParameters: window.location.search
+                });
+            }
+        });
+    </script>
+</body>
+</html>
