@@ -14,50 +14,51 @@
         #error-container {
             background-color: #ff000033;
             color: #ff6b6b;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
             text-align: center;
         }
         #debug-info {
             background-color: #2d3748;
             color: #cbd5e0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
             font-family: monospace;
             white-space: pre-wrap;
             word-break: break-all;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body class="bg-gray-900 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-2 py-4">
         <!-- Error Display Container -->
         <div id="error-container" style="display: none;">
-            <h2 class="text-2xl font-bold mb-4">Oops! Something went wrong</h2>
-            <p id="error-message">Unable to load highlight details</p>
-            <div id="debug-info"></div>
+            <h2 class="text-xl font-bold mb-2">Oops! Something went wrong</h2>
+            <p id="error-message" class="text-sm">Unable to load highlight details</p>
+            <div id="debug-info" class="text-xs"></div>
         </div>
 
         <div id="video-detail-container" class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div id="video-header" class="p-6 bg-gradient-to-r from-gray-700 to-gray-900">
-                <h1 id="video-title" class="text-3xl font-bold text-white mb-4">Loading Highlight...</h1>
-                <div id="video-meta" class="flex items-center text-sm text-gray-300 mb-4">
-                    <span id="video-date" class="mr-4">-</span>
-                    <span id="video-competition" class="mr-4">-</span>
+            <div id="video-header" class="p-4 bg-gradient-to-r from-gray-700 to-gray-900">
+                <h1 id="video-title" class="text-2xl font-bold text-white mb-2">Loading Highlight...</h1>
+                <div id="video-meta" class="flex items-center text-xs text-gray-300 mb-2">
+                    <span id="video-date" class="mr-2">-</span>
+                    <span id="video-competition" class="mr-2">-</span>
                 </div>
             </div>
 
-            <div id="video-content" class="p-6">
-                <div id="video-embed" class="mb-6 rounded-lg overflow-hidden shadow-lg">
-                    <p class="text-center text-gray-400">No video available</p>
+            <div id="video-content" class="p-4">
+                <div id="video-embed" class="mb-4 rounded-lg overflow-hidden shadow-lg">
+                    <p class="text-center text-gray-400 text-sm">No video available</p>
                 </div>
 
                 <!-- Embedded Highlights Section -->
-                <div id="embedded-highlights" class="mt-8">
-                    <h2 class="text-2xl font-bold mb-4">All Highlights</h2>
-                    <div id="highlights-list" class="space-y-4">No additional highlights</div>
+                <div id="embedded-highlights" class="mt-4">
+                    <h2 class="text-xl font-bold mb-2">All Highlights</h2>
+                    <div id="highlights-list" class="space-y-2">No additional highlights</div>
                 </div>
             </div>
         </div>
